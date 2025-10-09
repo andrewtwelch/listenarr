@@ -5,14 +5,11 @@ import os
 import random
 import string
 import threading
-import urllib.parse
-from flask import Flask, render_template, request
+from flask import Flask, render_template
 from flask_socketio import SocketIO
 import requests
 import musicbrainzngs
-from thefuzz import fuzz
 from unidecode import unidecode
-import pylast
 
 class DataHandler:
     def __init__(self):
@@ -243,18 +240,8 @@ class DataHandler:
 
                         stage = "ListenBrainz artist popularity lookup"
                         popularity_data = requests.post("https://api.listenbrainz.org/1/popularity/artist", json=payload).json()
-<<<<<<< HEAD
-<<<<<<< HEAD
                         returned_artist["Popularity"] = f"{self.format_numbers(popularity_data[0]["total_listen_count"])} listens"
                         returned_artist["Followers"] = f"{self.format_numbers(popularity_data[0]["total_user_count"])} users"
-=======
-                        returned_artist["Popularity"] = f"{popularity_data[0]["total_listen_count"]} listens"
-                        returned_artist["Followers"] = f"{popularity_data[0]["total_user_count"]} users"
->>>>>>> ae0ed45 (feat: initial conversion to use listenbrainz for recommendations)
-=======
-                        returned_artist["Popularity"] = f"{self.format_numbers(popularity_data[0]["total_listen_count"])} listens"
-                        returned_artist["Followers"] = f"{self.format_numbers(popularity_data[0]["total_user_count"])} users"
->>>>>>> 81f817e (feat: minor style changes, cleaned up unnecessary code)
 
                         stage = "Send to client"
                         self.recommended_artists.append(returned_artist)
