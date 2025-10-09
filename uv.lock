@@ -301,6 +301,7 @@ dependencies = [
     { name = "gunicorn" },
     { name = "musicbrainzngs" },
     { name = "pylast" },
+    { name = "pylistenbrainz" },
     { name = "requests" },
     { name = "spotipy" },
     { name = "thefuzz" },
@@ -316,6 +317,7 @@ requires-dist = [
     { name = "gunicorn", specifier = ">=23.0.0" },
     { name = "musicbrainzngs", specifier = ">=0.7.1" },
     { name = "pylast", specifier = ">=6.0.0" },
+    { name = "pylistenbrainz", specifier = ">=0.5.1" },
     { name = "requests", specifier = ">=2.32.5" },
     { name = "spotipy", specifier = ">=2.25.1" },
     { name = "thefuzz", specifier = ">=0.22.1" },
@@ -411,6 +413,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/8d/f5/ec144f937b32252b127f892636c6875d876b856a9f289f3c0bc8a4e05932/pylast-6.0.0.tar.gz", hash = "sha256:09748dcdb97ddc812c65460bea73f7cce578b2b8ed4d9f6a0d1da122f8b05c5c", size = 45408, upload-time = "2025-09-29T12:44:18.935Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7e/03/c2ebbacdf3d200409198dde206cb2f59a3ee87c4086c7138cf69e3374ef1/pylast-6.0.0-py3-none-any.whl", hash = "sha256:8570017a955a04c5694e7ad38b13081b6119531b4a10bfc771ccd0b9d4f900ee", size = 26614, upload-time = "2025-09-29T12:44:17.423Z" },
+]
+
+[[package]]
+name = "pylistenbrainz"
+version = "0.5.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e3/11/24ca2dcec2be635728521610274088888fbf721e5cc0e2302d658fe8ebf2/pylistenbrainz-0.5.1.tar.gz", hash = "sha256:20f4649bad2e5d5e949ad0bf9238c4e632a8df0a0b2b2220bd055506fb95ab48", size = 11292, upload-time = "2021-12-11T18:45:29.904Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/17/07/1af138c78dafcea3d1e5262b148cdf589593ff00cdf6db34effc69a89012/pylistenbrainz-0.5.1-py3-none-any.whl", hash = "sha256:5d56c281898f0ff3a75ade720a09fbfe56832e277fd0c2b5cc0949848c46dfc2", size = 28890, upload-time = "2021-12-11T18:45:24.547Z" },
 ]
 
 [[package]]

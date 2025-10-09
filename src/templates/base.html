@@ -25,7 +25,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.3/purify.min.js"
     integrity="sha512-Ll+TuDvrWDNNRnFFIM8dOiw7Go7dsHyxRp4RutiIFW/wm3DgDmCnRZow6AqbXnCbpWu93yM1O34q+4ggzGeXVA=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <title>Lidify</title>
+  <title>Listenarr</title>
 </head>
 
 <body class="bg-body-secondary">
@@ -37,7 +37,7 @@
           data-bs-target="#lidarr-sidebar" aria-controls="lidarr-sidebar">
           <i class="fa fa-bars fa-2x"></i>
         </button>
-        <h1 class="title text-center text-light flex-grow-1" id="return-to-top">Lidify</h1>
+        <h1 class="title text-center text-light flex-grow-1" id="return-to-top">Listenarr</h1>
         <button class="btn btn-link text-light" id="settings-button" data-bs-toggle="modal"
           data-bs-target="#config-modal">
           <i class="fa fa-gear fa-2x"></i>
@@ -71,6 +71,14 @@
           <div class="form-group-modal my-3">
             <label for="root-folder-path">Lidarr Root Folder Path:</label>
             <input type="text" class="form-control" id="root-folder-path" placeholder="Enter Lidarr Root Folder Path">
+          </div>
+          <div class="form-group-modal my-3">
+            <label for="root-folder-path">Lidarr Quality Profile ID:</label>
+            <input type="text" class="form-control" id="quality-profile-id" placeholder="Enter Lidarr Quality Profile ID">
+          </div>
+          <div class="form-group-modal my-3">
+            <label for="root-folder-path">Lidarr Metadata Profile ID:</label>
+            <input type="text" class="form-control" id="metadata-profile-id" placeholder="Enter Lidarr Metadata Profile ID">
           </div>
         </div>
         <div class="modal-footer">
@@ -151,21 +159,17 @@
                 <div class="led"></div>
               </div>
               <h5 class="card-title"></h5>
-              <p class="card-text genre"></p>
-              <div class="artist-img-container">
-                <img src="" class="card-img-top" alt="">
-                <div class="artist-img-overlay"></div>
-                <div class="button-container">
+              <p class="card-text similar-to"></p>
+              <div class="button-container">
                   <button class="btn btn-primary add-to-lidarr-btn">Add to Lidarr</button>
-                  <button class="btn btn-success get-preview-btn">Preview</button>
-                </div>
+                  <a target="_blank" class="btn btn-success get-preview-btn">View on ListenBrainz</a>
               </div>
               <div class="row">
                 <div class="col">
-                  <p class="card-text followers"></p>
+                  <p class="small-font card-text followers"></p>
                 </div>
                 <div class="col">
-                  <p class="card-text text-end popularity"></p>
+                  <p class="small-font card-text text-end popularity"></p>
                 </div>
               </div>
             </div>

@@ -17,6 +17,8 @@ var save_changes_button = document.getElementById("save-changes-button");
 const lidarr_address = document.getElementById("lidarr-address");
 const lidarr_api_key = document.getElementById("lidarr-api-key");
 const root_folder_path = document.getElementById("root-folder-path");
+const quality_profile_id = document.getElementById("quality-profile-id");
+const metadata_profile_id = document.getElementById("metadata-profile-id");
 
 var lidarr_items = [];
 var socket = io();
@@ -66,19 +68,11 @@ function append_artists(artists) {
         var artist_col = clone.querySelector('#artist-column');
 
         artist_col.querySelector('.card-title').textContent = artist.Name;
-        artist_col.querySelector('.genre').textContent = artist.Genre;
-        if (artist.Img_Link) {
-            artist_col.querySelector('.card-img-top').src = artist.Img_Link;
-            artist_col.querySelector('.card-img-top').alt = artist.Name;
-        } else {
-            artist_col.querySelector('.artist-img-container').removeChild(artist_col.querySelector('.card-img-top'));
-        }
+        artist_col.querySelector('.similar-to').textContent = artist.Similar_To;
         artist_col.querySelector('.add-to-lidarr-btn').addEventListener('click', function () {
-            add_to_lidarr(artist.Name);
+            add_to_lidarr(artist.Mbid);
         });
-        artist_col.querySelector('.get-preview-btn').addEventListener('click', function () {
-            preview_req(artist.Name);
-        });
+        artist_col.querySelector('.get-preview-btn').setAttribute("href", "https://listenbrainz.org/artist/" + artist.Mbid);
         artist_col.querySelector('.followers').textContent = artist.Followers;
         artist_col.querySelector('.popularity').textContent = artist.Popularity;
 
@@ -186,6 +180,8 @@ save_changes_button.addEventListener("click", () => {
         "lidarr_address": lidarr_address.value,
         "lidarr_api_key": lidarr_api_key.value,
         "root_folder_path": root_folder_path.value,
+        "quality_profile_id": quality_profile_id.value,
+        "metadata_profile_id": metadata_profile_id.value,
     });
     save_message.style.display = "block";
     setTimeout(function () {
@@ -200,6 +196,8 @@ config_modal.addEventListener('show.bs.modal', function (event) {
         lidarr_address.value = settings.lidarr_address;
         lidarr_api_key.value = settings.lidarr_api_key;
         root_folder_path.value = settings.root_folder_path;
+        quality_profile_id.value = settings.quality_profile_id;
+        metadata_profile_id.value = settings.metadata_profile_id;
         socket.off("settingsLoaded", handle_settings_loaded);
     }
     socket.on("settingsLoaded", handle_settings_loaded);
@@ -207,25 +205,6 @@ config_modal.addEventListener('show.bs.modal', function (event) {
 
 lidarr_sidebar.addEventListener('show.bs.offcanvas', function (event) {
     socket.emit("side_bar_opened");
-});
-
-window.addEventListener('scroll', function () {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-        socket.emit('load_more_artists');
-    }
-});
-
-window.addEventListener('touchmove', function () {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-        socket.emit('load_more_artists');
-    }
-});
-
-window.addEventListener('touchend', () => {
-    const { scrollHeight, scrollTop, clientHeight } = document.documentElement;
-    if (Math.abs(scrollHeight - clientHeight - scrollTop) < 1) {
-        socket.emit('load_more_artists');
-    }
 });
 
 socket.on("lidarr_sidebar_update", (response) => {
@@ -246,7 +225,7 @@ socket.on("lidarr_sidebar_update", (response) => {
             input.className = "form-check-input";
             input.id = "lidarr-" + i;
             input.name = "lidarr-item";
-            input.value = item.name;
+            input.value = item.mbid;
 
             if (item.checked) {
                 input.checked = true;
