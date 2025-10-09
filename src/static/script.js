@@ -17,8 +17,6 @@ var save_changes_button = document.getElementById("save-changes-button");
 const lidarr_address = document.getElementById("lidarr-address");
 const lidarr_api_key = document.getElementById("lidarr-api-key");
 const root_folder_path = document.getElementById("root-folder-path");
-const spotify_client_id = document.getElementById("spotify-client-id");
-const spotify_client_secret = document.getElementById("spotify-client-secret");
 
 var lidarr_items = [];
 var socket = io();
@@ -188,8 +186,6 @@ save_changes_button.addEventListener("click", () => {
         "lidarr_address": lidarr_address.value,
         "lidarr_api_key": lidarr_api_key.value,
         "root_folder_path": root_folder_path.value,
-        "spotify_client_id": spotify_client_id.value,
-        "spotify_client_secret": spotify_client_secret.value,
     });
     save_message.style.display = "block";
     setTimeout(function () {
@@ -204,8 +200,6 @@ config_modal.addEventListener('show.bs.modal', function (event) {
         lidarr_address.value = settings.lidarr_address;
         lidarr_api_key.value = settings.lidarr_api_key;
         root_folder_path.value = settings.root_folder_path;
-        spotify_client_id.value = settings.spotify_client_id;
-        spotify_client_secret.value = settings.spotify_client_secret;
         socket.off("settingsLoaded", handle_settings_loaded);
     }
     socket.on("settingsLoaded", handle_settings_loaded);
@@ -382,17 +376,6 @@ function stop_audio() {
     audio_player.removeAttribute('src');
     preview_modal = null;
 }
-
-socket.on("spotify_preview", function (preview_info) {
-    if (typeof preview_info === 'string') {
-        show_toast("Error Retrieving Preview", preview_info);
-    } else {
-        var artist = preview_info.artist;
-        var song = preview_info.song;
-        show_audio_player_modal(artist, song);
-        play_audio(preview_info.preview_url);
-    }
-});
 
 socket.on("lastfm_preview", function (preview_info) {
     if (typeof preview_info === 'string') {

@@ -9,8 +9,6 @@ import urllib.parse
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 import requests
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
 import musicbrainzngs
 from thefuzz import fuzz
 from unidecode import unidecode
@@ -59,8 +57,6 @@ class DataHandler:
             "lidarr_address": "http://192.168.1.2:8686",
             "lidarr_api_key": "",
             "root_folder_path": "/data/media/music/",
-            "spotify_client_id": "",
-            "spotify_client_secret": "",
             "fallback_to_top_result": False,
             "lidarr_api_timeout": 120.0,
             "quality_profile_id": 1,
@@ -72,7 +68,7 @@ class DataHandler:
             "app_url": "http://" + "".join(random.choices(string.ascii_lowercase, k=10)) + ".com",
             "last_fm_api_key": "",
             "last_fm_api_secret": "",
-            "mode": "Spotify",
+            "mode": "ListenBrainz",
             "auto_start": False,
             "auto_start_delay": 60,
         }
@@ -81,8 +77,6 @@ class DataHandler:
         self.lidarr_address = os.environ.get("lidarr_address", "")
         self.lidarr_api_key = os.environ.get("lidarr_api_key", "")
         self.root_folder_path = os.environ.get("root_folder_path", "")
-        self.spotify_client_id = os.environ.get("spotify_client_id", "")
-        self.spotify_client_secret = os.environ.get("spotify_client_secret", "")
         fallback_to_top_result = os.environ.get("fallback_to_top_result", "")
         self.fallback_to_top_result = fallback_to_top_result.lower() == "true" if fallback_to_top_result != "" else ""
         lidarr_api_timeout = os.environ.get("lidarr_api_timeout", "")
@@ -208,58 +202,6 @@ class DataHandler:
     def find_similar_artists(self):
         if self.stop_event.is_set() or self.search_in_progress_flag:
             return
-        elif self.mode == "Spotify" and self.new_found_artists_counter > 0:
-            try:
-                self.lidify_logger.info(f"Searching for new artists via {self.mode}")
-                self.new_found_artists_counter = 0
-                self.search_in_progress_flag = True
-                random_artists = random.sample(self.artists_to_use_in_search, min(7, len(self.artists_to_use_in_search)))
-
-                sp = spotipy.Spotify(retries=0, auth_manager=SpotifyClientCredentials(client_id=self.spotify_client_id, client_secret=self.spotify_client_secret))
-
-                for artist_name in random_artists:
-                    if self.stop_event.is_set():
-                        break
-                    search_id = None
-                    results = sp.search(q=artist_name, type="artist")
-                    items = results.get("artists", {}).get("items", [])
-                    search_id = items[0]["id"]
-                    related_artists = sp.artist_related_artists(search_id)
-                    for related_artist in related_artists["artists"]:
-                        if self.stop_event.is_set():
-                            break
-                        cleaned_artist = unidecode(related_artist.get("name")).lower()
-                        if cleaned_artist not in self.cleaned_lidarr_items:
-                            for item in self.recommended_artists:
-                                if related_artist.get("name") == item["Name"]:
-                                    break
-                            else:
-                                genres = ", ".join([genre.title() for genre in related_artist.get("genres", [])]) if related_artist.get("genres") else "Unknown Genre"
-                                followers = self.format_numbers(related_artist.get("followers", {}).get("total", 0))
-                                pop = related_artist.get("popularity", "0")
-                                img_link = related_artist.get("images")[0]["url"] if related_artist.get("images") else None
-                                exclusive_artist = {
-                                    "Name": related_artist["name"],
-                                    "Genre": genres,
-                                    "Status": "",
-                                    "Img_Link": img_link,
-                                    "Popularity": f"Popularity: {pop}/100",
-                                    "Followers": f"Followers: {followers}",
-                                }
-                                self.recommended_artists.append(exclusive_artist)
-                                socketio.emit("more_artists_loaded", [exclusive_artist])
-                                self.new_found_artists_counter += 1
-
-                if self.new_found_artists_counter == 0:
-                    self.lidify_logger.info("Search Exhausted - Try selecting more artists from existing Lidarr library")
-                    socketio.emit("new_toast_msg", {"title": "Search Exhausted", "message": "Try selecting more artists from existing Lidarr library"})
-
-            except Exception as e:
-                self.lidify_logger.error(f"Spotify Error: {str(e)}")
-
-            finally:
-                self.search_in_progress_flag = False
-
         elif self.mode == "LastFM" and self.new_found_artists_counter > 0:
             try:
                 self.lidify_logger.info(f"Searching for new artists via {self.mode}")
@@ -432,8 +374,6 @@ class DataHandler:
                 "lidarr_address": self.lidarr_address,
                 "lidarr_api_key": self.lidarr_api_key,
                 "root_folder_path": self.root_folder_path,
-                "spotify_client_id": self.spotify_client_id,
-                "spotify_client_secret": self.spotify_client_secret,
             }
             socketio.emit("settingsLoaded", data)
         except Exception as e:
@@ -444,8 +384,6 @@ class DataHandler:
             self.lidarr_address = data["lidarr_address"]
             self.lidarr_api_key = data["lidarr_api_key"]
             self.root_folder_path = data["root_folder_path"]
-            self.spotify_client_id = data["spotify_client_id"]
-            self.spotify_client_secret = data["spotify_client_secret"]
         except Exception as e:
             self.lidify_logger.error(f"Failed to update settings: {str(e)}")
 
@@ -465,8 +403,6 @@ class DataHandler:
                         "lidarr_address": self.lidarr_address,
                         "lidarr_api_key": self.lidarr_api_key,
                         "root_folder_path": self.root_folder_path,
-                        "spotify_client_id": self.spotify_client_id,
-                        "spotify_client_secret": self.spotify_client_secret,
                         "fallback_to_top_result": self.fallback_to_top_result,
                         "lidarr_api_timeout": float(self.lidarr_api_timeout),
                         "quality_profile_id": self.quality_profile_id,
@@ -491,40 +427,7 @@ class DataHandler:
 
     def preview(self, raw_artist_name):
         artist_name = urllib.parse.unquote(raw_artist_name)
-        if self.mode == "Spotify":
-            try:
-                preview_info = None
-                sp = spotipy.Spotify(retries=0, auth_manager=SpotifyClientCredentials(client_id=self.spotify_client_id, client_secret=self.spotify_client_secret))
-                results = sp.search(q=artist_name, type="artist")
-                items = results.get("artists", {}).get("items", [])
-                cleaned_artist_name = unidecode(artist_name).lower()
-                for item in items:
-                    match_ratio = fuzz.ratio(cleaned_artist_name, item.get("name", "").lower())
-                    decoded_match_ratio = fuzz.ratio(unidecode(cleaned_artist_name), unidecode(item.get("name", "").lower()))
-                    if match_ratio > 90 or decoded_match_ratio > 90:
-                        artist_id = item.get("id", "")
-                        top_tracks = sp.artist_top_tracks(artist_id)
-                        random.shuffle(top_tracks["tracks"])
-                        for track in top_tracks["tracks"]:
-                            if track.get("preview_url"):
-                                preview_info = {"artist": track["artists"][0]["name"], "song": track["name"], "preview_url": track["preview_url"]}
-                                break
-                        else:
-                            preview_info = f"No preview tracks available for artist: {artist_name}"
-                            self.lidify_logger.error(preview_info)
-                        break
-                else:
-                    preview_info = f"No Artist match for: {artist_name}"
-                    self.lidify_logger.error(preview_info)
-
-            except Exception as e:
-                preview_info = f"Error retrieving artist previews: {str(e)}"
-                self.lidify_logger.error(preview_info)
-
-            finally:
-                socketio.emit("spotify_preview", preview_info, room=request.sid)
-
-        elif self.mode == "LastFM":
+        if self.mode == "LastFM":
             try:
                 preview_info = {}
                 biography = None
