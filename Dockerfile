@@ -8,17 +8,17 @@ ENV RELEASE_VERSION=${RELEASE_VERSION}
 RUN apk update && apk add --no-cache su-exec
 
 # Create directories and set permissions
-COPY . /lidify
-WORKDIR /lidify
+COPY . /listenarr
+WORKDIR /listenarr
 
 # Install requirements
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Make the script executable
-RUN chmod +x thewicklowwolf-init.sh
+RUN chmod +x listenarr-init.sh
 
 # Expose port
 EXPOSE 5000
 
 # Start the app
-ENTRYPOINT ["./thewicklowwolf-init.sh"]
+ENTRYPOINT ["./listenarr-init.sh"]
