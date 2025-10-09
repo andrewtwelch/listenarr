@@ -1,24 +1,17 @@
-FROM python:3.12-alpine
+FROM ghcr.io/astral-sh/uv:alpine
 
 # Set build arguments
 ARG RELEASE_VERSION
 ENV RELEASE_VERSION=${RELEASE_VERSION}
 
-# Install su-exec
-RUN apk update && apk add --no-cache su-exec
-
 # Create directories and set permissions
 COPY . /listenarr
 WORKDIR /listenarr
 
-# Install requirements
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Make the script executable
-RUN chmod +x listenarr-init.sh
+RUN uv sync --locked
 
 # Expose port
 EXPOSE 5000
 
 # Start the app
-ENTRYPOINT ["./listenarr-init.sh"]
+CMD ["uv", "run", "src/Listenarr.py"]
