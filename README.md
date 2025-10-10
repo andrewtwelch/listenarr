@@ -7,7 +7,7 @@ Forked from [Lidify](https://github.com/TheWicklowWolf/Lidify).
 ### Setup
 
 Listenarr can be run natively or through a container.
-To run natively, install dependencies and run `src/Listenarr.py`
+To run natively, install dependencies and run `src/Listenarr.py`.
 To run as a container, use the image `ghcr.io/andrewtwelch/listenarr:latest` or use the `docker-compose.yml` file. The `main` tag is also available, following the `main` branch.
 
 ### Configuration
