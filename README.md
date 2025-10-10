@@ -1,26 +1,31 @@
-CURRENTLY UNDER DEVELOPMENT
 
-Music discovery tool that provides recommendations based on selected Lidarr artists, based on ListenBrainz similar artists.
+## Listenarr
+
+Music discovery tool that provides recommendations through the ListenBrainz Labs similar-artists API, based on artists in Lidarr and feeding these recommendations back into Lidarr.
+Forked from [Lidify](https://github.com/TheWicklowWolf/Lidify).
+
+### Setup
+
+Listenarr can be run natively or through a container.
+To run natively, install dependencies and run `src/Listenarr.py`
+To run as a container, use the image `ghcr.io/andrewtwelch/listenarr:latest` or use the `docker-compose.yml` file. The `main` tag is also available, following the `main` branch.
+
+### Configuration
+
+Once you have started Listenarr, click the settings cog in the top right corner.
+Enter your Lidarr address and API key, then click Test to confirm connectivity and load options for Root Folder, Quality Profile and Metadata Profile.
+Tick Search for Missing Albums if you want Lidarr to automatically search for releases when an artist is added.
+Tick Auto Start and set a delay if you want Listenarr to automatically start a search with all artists when opened.
+Light/Dark Mode can be toggled in the bottom right corner.
+Click Save to save all settings.
+
+### Usage
+
+Click the sidebar button in the top left to open the sidebar.
+Click the Get Lidarr Artists button to pull artists from your Lidarr instance.
+Select any number of artists, then click Start to have Listenarr give you a list of recommended artists to add.
+Once recommended artists show up, you can click Add to Lidarr to add an artist, or View on ListenBrainz to see more info about the artist.
 
 
-## Configuration via environment variables
 
-Certain values can be set via environment variables:
-
-* __PUID__: The user ID to run the app with. Defaults to `1000`.
-* __PGID__: The group ID to run the app with. Defaults to `1000`.
-* __lidarr_address__: The URL for Lidarr. Defaults to `http://192.168.1.2:8686`. Can be configured from the application as well.
-* __lidarr_api_key__: The API key for Lidarr. Defaults to ``. Can be configured from the application as well.
-* __root_folder_path__: The root folder path for music. Defaults to `/data/media/music/`. Can be configured from the application as well.
-* __fallback_to_top_result__: Whether to use the top result if no match is found. Defaults to `False`.
-* __lidarr_api_timeout__: Timeout duration for Lidarr API calls. Defaults to `120`.
-* __quality_profile_id__: Quality profile ID in Lidarr. Defaults to `1`.
-* __metadata_profile_id__: Metadata profile ID in Lidarr. Defaults to `1`
-* __search_for_missing_albums__: Whether to start searching for albums when adding artists. Defaults to `False`
-* __dry_run_adding_to_lidarr__: Whether to run without adding artists in Lidarr. Defaults to `False`
-* __app_name__: Name of the application. Defaults to `Lidify`.
-* __app_rev__: Application revision. Defaults to `0.01`.
-* __app_url__: URL of the application. Defaults to `Random URL`.
-* __auto_start__: Whether to run automatically at startup. Defaults to `False`.
-* __auto_start_delay__: Delay duration for Auto Start in Seconds (if enabled). Defaults to `60`.
 
