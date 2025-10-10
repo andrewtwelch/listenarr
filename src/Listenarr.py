@@ -16,8 +16,6 @@ class DataHandler:
         self.lidify_logger = logging.getLogger()
         self.musicbrainzngs_logger = logging.getLogger("musicbrainzngs")
         self.musicbrainzngs_logger.setLevel("WARNING")
-        self.pylast_logger = logging.getLogger("pylast")
-        self.pylast_logger.setLevel("WARNING")
 
         app_name_text = os.path.basename(__file__).replace(".py", "")
         release_version = os.environ.get("RELEASE_VERSION", "unknown")
@@ -26,7 +24,6 @@ class DataHandler:
         self.lidify_logger.warning(f"{'*' * 50}")
 
         self.search_in_progress_flag = False
-        self.new_found_artists_counter = 0
         self.clients_connected_counter = 0
         self.config_folder = "config"
         self.recommended_artists = []
@@ -53,7 +50,6 @@ class DataHandler:
             "lidarr_address": "http://localhost:8686",
             "lidarr_api_key": "",
             "root_folder_path": "/data/media/music/",
-            "fallback_to_top_result": False,
             "lidarr_api_timeout": 120.0,
             "quality_profile_id": 1,
             "metadata_profile_id": 1,
@@ -70,8 +66,6 @@ class DataHandler:
         self.lidarr_address = os.environ.get("lidarr_address", "")
         self.lidarr_api_key = os.environ.get("lidarr_api_key", "")
         self.root_folder_path = os.environ.get("root_folder_path", "")
-        fallback_to_top_result = os.environ.get("fallback_to_top_result", "")
-        self.fallback_to_top_result = fallback_to_top_result.lower() == "true" if fallback_to_top_result != "" else ""
         lidarr_api_timeout = os.environ.get("lidarr_api_timeout", "")
         self.lidarr_api_timeout = float(lidarr_api_timeout) if lidarr_api_timeout else ""
         quality_profile_id = os.environ.get("quality_profile_id", "")
@@ -127,7 +121,6 @@ class DataHandler:
     def start(self, data):
         try:
             socketio.emit("clear")
-            self.new_found_artists_counter = 1
             self.artists_to_use_in_search = []
             self.recommended_artists = []
 
@@ -338,7 +331,6 @@ class DataHandler:
                         "lidarr_address": self.lidarr_address,
                         "lidarr_api_key": self.lidarr_api_key,
                         "root_folder_path": self.root_folder_path,
-                        "fallback_to_top_result": self.fallback_to_top_result,
                         "lidarr_api_timeout": float(self.lidarr_api_timeout),
                         "quality_profile_id": self.quality_profile_id,
                         "metadata_profile_id": self.metadata_profile_id,
