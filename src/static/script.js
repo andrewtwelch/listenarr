@@ -13,12 +13,17 @@ var config_modal = document.getElementById('config-modal');
 var lidarr_sidebar = document.getElementById('lidarr-sidebar');
 
 var save_message = document.getElementById("save-message");
-var save_changes_button = document.getElementById("save-changes-button");
+var save_settings_button = document.getElementById("save-settings-button");
+var test_settings_button = document.getElementById("test-settings-button")
 const lidarr_address = document.getElementById("lidarr-address");
 const lidarr_api_key = document.getElementById("lidarr-api-key");
+const lidarr_api_timeout = document.getElementById("lidarr-api-timeout");
 const root_folder_path = document.getElementById("root-folder-path");
 const quality_profile_id = document.getElementById("quality-profile-id");
 const metadata_profile_id = document.getElementById("metadata-profile-id");
+const search_for_missing_albums = document.getElementById("search-for-missing-albums");
+const auto_start = document.getElementById("auto-start");
+const auto_start_delay = document.getElementById("auto-start-delay");
 
 var lidarr_items = [];
 var socket = io();
@@ -175,18 +180,87 @@ start_stop_button.addEventListener('click', function () {
     }
 });
 
-save_changes_button.addEventListener("click", () => {
+test_settings_button.addEventListener("click", () => {
+    test_settings_button.classList.remove("btn-success");
+    test_settings_button.classList.remove("btn-danger");
+    test_settings_button.classList.add("btn-warning");
+    socket.emit("test_settings", {
+        "lidarr_address": lidarr_address.value,
+        "lidarr_api_key": lidarr_api_key.value,
+    });
+});
+
+socket.on("settingsTested", (data) => {
+    if (data["success"]) {
+        test_settings_button.classList.remove("btn-warning");
+        test_settings_button.classList.add("btn-success");
+        root_folder_path.options.length = 0;
+        metadata_profile_id.options.length = 0;
+        quality_profile_id.options.length = 0;
+        data["root_folders"].forEach((folder) => {
+            var option = document.createElement("option");
+            option.value = folder["path"];
+            option.textContent = folder["name"] + " - " + folder["path"];
+            if (folder["path"] == data.root_folder_path) {
+                option.selected = true;
+            }
+            root_folder_path.append(option);
+        });
+        data["metadata_profiles"].forEach((profile) => {
+            var option = document.createElement("option");
+            option.value = profile["id"];
+            option.textContent = profile["name"];
+            if (profile["id"] == data.metadata_profile_id) {
+                option.selected = true;
+            }
+            metadata_profile_id.append(option);
+        });
+        data["quality_profiles"].forEach((profile) => {
+            var option = document.createElement("option");
+            option.value = profile["id"];
+            option.textContent = profile["name"];
+            if (profile["id"] == data.quality_profile_id) {
+                option.selected = true;
+            }
+            quality_profile_id.append(option);
+        });
+    } else {
+        test_settings_button.classList.remove("btn-warning");
+        test_settings_button.classList.add("btn-danger");
+    }
+    setTimeout(function () {
+        test_settings_button.classList.remove("btn-success");
+        test_settings_button.classList.remove("btn-danger");
+        test_settings_button.classList.add("btn-warning");
+    }, 2000);
+});
+
+save_settings_button.addEventListener("click", () => {
+    if (lidarr_api_timeout.value < 10) {
+        lidarr_api_timeout.value = 10;
+    } else if (lidarr_api_timeout.value > 300) {
+        lidarr_api_timeout.value = 300;
+    }
+    if (auto_start_delay.value < 10) {
+        auto_start_delay.value = 10;
+    } else if (auto_start_delay.value > 120) {
+        auto_start_delay.value = 120;
+    }
     socket.emit("update_settings", {
         "lidarr_address": lidarr_address.value,
         "lidarr_api_key": lidarr_api_key.value,
+        "lidarr_api_timeout": lidarr_api_timeout.value,
         "root_folder_path": root_folder_path.value,
         "quality_profile_id": quality_profile_id.value,
         "metadata_profile_id": metadata_profile_id.value,
+        "search_for_missing_albums": search_for_missing_albums.checked,
+        "auto_start": auto_start.checked,
+        "auto_start_delay": auto_start_delay.value,
     });
     save_message.style.display = "block";
     setTimeout(function () {
         save_message.style.display = "none";
-    }, 1000);
+    }, 2000);
 });
 
 config_modal.addEventListener('show.bs.modal', function (event) {
@@ -195,9 +269,40 @@ config_modal.addEventListener('show.bs.modal', function (event) {
     function handle_settings_loaded(settings) {
         lidarr_address.value = settings.lidarr_address;
         lidarr_api_key.value = settings.lidarr_api_key;
-        root_folder_path.value = settings.root_folder_path;
-        quality_profile_id.value = settings.quality_profile_id;
-        metadata_profile_id.value = settings.metadata_profile_id;
+        lidarr_api_timeout.value = settings.lidarr_api_timeout;
+        search_for_missing_albums.checked = settings.search_for_missing_albums;
+        auto_start.checked = settings.auto_start;
+        auto_start_delay.value = settings.auto_start_delay;
+        root_folder_path.options.length = 0;
+        metadata_profile_id.options.length = 0;
+        quality_profile_id.options.length = 0;
+        settings["root_folders"].forEach((folder) => {
+            var option = document.createElement("option");
+            option.value = folder["path"];
+            option.textContent = folder["name"] + " - " + folder["path"];
+            if (folder["path"] == settings.root_folder_path) {
+                option.selected = true;
+            }
+            root_folder_path.append(option);
+        });
+        settings["metadata_profiles"].forEach((profile) => {
+            var option = document.createElement("option");
+            option.value = profile["id"];
+            option.textContent = profile["name"];
+            if (profile["id"] == settings.metadata_profile_id) {
+                option.selected = true;
+            }
+            metadata_profile_id.append(option);
+        });
+        settings["quality_profiles"].forEach((profile) => {
+            var option = document.createElement("option");
+            option.value = profile["id"];
+            option.textContent = profile["name"];
+            if (profile["id"] == settings.quality_profile_id) {
+                option.selected = true;
+            }
+            quality_profile_id.append(option);
+        });
         socket.off("settingsLoaded", handle_settings_loaded);
     }
     socket.on("settingsLoaded", handle_settings_loaded);

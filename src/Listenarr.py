@@ -1,8 +1,6 @@
 import json
 import logging
 import os
-import random
-import string
 import threading
 from flask import Flask, render_template
 from flask_socketio import SocketIO
@@ -10,8 +8,13 @@ import requests
 import musicbrainzngs
 from unidecode import unidecode
 
+APP_NAME = "Listenarr"
+APP_VERSION = "0.1.0"
+
 class DataHandler:
     def __init__(self):
+        self.app_name = APP_NAME
+        self.app_rev = APP_VERSION
         logging.basicConfig(level=logging.INFO, format="%(message)s")
         self.lidify_logger = logging.getLogger()
         self.musicbrainzngs_logger = logging.getLogger("musicbrainzngs")
@@ -47,44 +50,31 @@ class DataHandler:
     def load_environ_or_config_settings(self):
         # Defaults
         default_settings = {
-            "lidarr_address": "http://localhost:8686",
+            "lidarr_address": "",
             "lidarr_api_key": "",
-            "root_folder_path": "/data/media/music/",
-            "lidarr_api_timeout": 120.0,
-            "quality_profile_id": 1,
-            "metadata_profile_id": 1,
+            "root_folder_path": "",
+            "lidarr_api_timeout": 120,
+            "quality_profile_id": -1,
+            "metadata_profile_id": -1,
             "search_for_missing_albums": False,
             "dry_run_adding_to_lidarr": False,
-            "app_name": "Listenarr",
-            "app_rev": "0.1.0",
-            "app_url": "http://localhost:5000",
             "auto_start": False,
             "auto_start_delay": 60,
         }
 
-        # Load settings from environmental variables (which take precedence) over the configuration file.
-        self.lidarr_address = os.environ.get("lidarr_address", "")
-        self.lidarr_api_key = os.environ.get("lidarr_api_key", "")
-        self.root_folder_path = os.environ.get("root_folder_path", "")
-        lidarr_api_timeout = os.environ.get("lidarr_api_timeout", "")
-        self.lidarr_api_timeout = float(lidarr_api_timeout) if lidarr_api_timeout else ""
-        quality_profile_id = os.environ.get("quality_profile_id", "")
-        self.quality_profile_id = int(quality_profile_id) if quality_profile_id else ""
-        metadata_profile_id = os.environ.get("metadata_profile_id", "")
-        self.metadata_profile_id = int(metadata_profile_id) if metadata_profile_id else ""
-        search_for_missing_albums = os.environ.get("search_for_missing_albums", "")
-        self.search_for_missing_albums = search_for_missing_albums.lower() == "true" if search_for_missing_albums != "" else ""
-        dry_run_adding_to_lidarr = os.environ.get("dry_run_adding_to_lidarr", "")
-        self.dry_run_adding_to_lidarr = dry_run_adding_to_lidarr.lower() == "true" if dry_run_adding_to_lidarr != "" else ""
-        self.app_name = os.environ.get("app_name", "")
-        self.app_rev = os.environ.get("app_rev", "")
-        self.app_url = os.environ.get("app_url", "")
-        auto_start = os.environ.get("auto_start", "")
-        self.auto_start = auto_start.lower() == "true" if auto_start != "" else ""
-        auto_start_delay = os.environ.get("auto_start_delay", "")
-        self.auto_start_delay = float(auto_start_delay) if auto_start_delay else ""
+        # Set blank values to allow getattr to work when loading from file
+        self.lidarr_address = ""
+        self.lidarr_api_key = ""
+        self.root_folder_path = ""
+        self.lidarr_api_timeout = ""
+        self.quality_profile_id = ""
+        self.metadata_profile_id = ""
+        self.search_for_missing_albums = ""
+        self.dry_run_adding_to_lidarr = ""
+        self.auto_start = ""
+        self.auto_start_delay = ""
 
-        # Load variables from the configuration file if not set by environmental variables.
+        # Load variables from the configuration file if it exists
         try:
             self.settings_config_file = os.path.join(self.config_folder, "settings_config.json")
             if os.path.exists(self.settings_config_file):
@@ -94,10 +84,18 @@ class DataHandler:
                     for key in ret:
                         if getattr(self, key) == "":
                             setattr(self, key, ret[key])
+                if self.lidarr_api_timeout < 10:
+                    self.lidarr_api_timeout = 10
+                elif self.lidarr_api_timeout > 300:
+                    self.lidarr_api_timeout = 300
+                if self.auto_start_delay < 10:
+                    self.auto_start_delay = 10
+                elif self.auto_start_delay > 120:
+                    self.auto_start_delay = 120
         except Exception as e:
             self.lidify_logger.error(f"Error Loading Config: {str(e)}")
 
-        # Load defaults if not set by an environmental variable or configuration file.
+        # Load defaults if not set by configuration file.
         for key, value in default_settings.items():
             if getattr(self, key) == "":
                 setattr(self, key, value)
@@ -139,7 +137,7 @@ class DataHandler:
                 raise Exception("No Lidarr Artists Selected")
 
         except Exception as e:
-            self.lidify_logger.error(f"Statup Error: {str(e)}")
+            self.lidify_logger.error(f"Startup Error: {str(e)}")
             self.stop_event.set()
             ret = {"Status": "Error", "Code": str(e), "Data": self.lidarr_items, "Running": not self.stop_event.is_set()}
             socketio.emit("lidarr_sidebar_update", ret)
@@ -237,7 +235,7 @@ class DataHandler:
 
     def add_artists(self, mbid):
         try:
-            musicbrainzngs.set_useragent(self.app_name, self.app_rev, self.app_url)
+            musicbrainzngs.set_useragent(self.app_name, self.app_rev, "https://github.com/andrewtwelch/listenarr")
             artist_lookup = musicbrainzngs.get_artist_by_id(mbid)
             artist_details = artist_lookup["artist"]
             artist_name = artist_details["name"]
@@ -249,7 +247,6 @@ class DataHandler:
                 "ArtistName": artist_name,
                 "qualityProfileId": self.quality_profile_id,
                 "metadataProfileId": self.metadata_profile_id,
-                #"path": os.path.join(self.root_folder_path, artist_folder, ""),
                 "rootFolderPath": self.root_folder_path,
                 "foreignArtistId": mbid,
                 "monitored": True,
@@ -259,7 +256,7 @@ class DataHandler:
                 response = requests.Response()
                 response.status_code = 201
             else:
-                response = requests.post(lidarr_url, headers=headers, json=payload)
+                response = requests.post(lidarr_url, headers=headers, json=payload, timeout=self.lidarr_api_timeout)
 
             if response.status_code == 201:
                 self.lidify_logger.info(f"Artist '{artist_name}' added successfully to Lidarr.")
@@ -294,24 +291,80 @@ class DataHandler:
 
     def load_settings(self):
         try:
+            headers = {"X-Api-Key": self.lidarr_api_key}
+            metadata_profiles = []
+            quality_profiles = []
+            root_folders = []
+            if self.lidarr_address:
+                status_request = requests.get(f"{self.lidarr_address}/api/v1/system/status", headers=headers, timeout=10)
+                if status_request.status_code == 200:
+                    metadata_profiles = requests.get(f"{self.lidarr_address}/api/v1/metadataprofile", headers=headers, timeout=10).json()
+                    quality_profiles = requests.get(f"{self.lidarr_address}/api/v1/qualityprofile", headers=headers, timeout=10).json()
+                    root_folders = requests.get(f"{self.lidarr_address}/api/v1/rootfolder", headers=headers, timeout=10).json()
             data = {
                 "lidarr_address": self.lidarr_address,
                 "lidarr_api_key": self.lidarr_api_key,
+                "lidarr_api_timeout": self.lidarr_api_timeout,
                 "root_folder_path": self.root_folder_path,
                 "quality_profile_id": self.quality_profile_id,
                 "metadata_profile_id": self.metadata_profile_id,
+                "search_for_missing_albums": self.search_for_missing_albums,
+                "auto_start": self.auto_start,
+                "auto_start_delay": self.auto_start_delay,
+                "root_folders": root_folders,
+                "quality_profiles": quality_profiles,
+                "metadata_profiles": metadata_profiles,
             }
             socketio.emit("settingsLoaded", data)
         except Exception as e:
             self.lidify_logger.error(f"Failed to load settings: {str(e)}")
 
+    def test_settings(self, data):
+        try:
+            address = data["lidarr_address"]
+            key = data["lidarr_api_key"]
+            headers = {"X-Api-Key": key}
+            status_request = requests.get(f"{address}/api/v1/system/status", headers=headers, timeout=10)
+            if status_request.status_code != 200:
+                response_data = {"success": False}
+                socketio.emit("settingsTested", data)
+            metadata_profiles = requests.get(f"{address}/api/v1/metadataprofile", headers=headers, timeout=10).json()
+            quality_profiles = requests.get(f"{address}/api/v1/qualityprofile", headers=headers, timeout=10).json()
+            root_folders = requests.get(f"{address}/api/v1/rootfolder", headers=headers, timeout=10).json()
+            response_data = {
+                "success": True,
+                "root_folders": root_folders,
+                "metadata_profiles": metadata_profiles,
+                "quality_profiles": quality_profiles,
+                "root_folder_path": self.root_folder_path,
+                "metadata_profile_id": self.metadata_profile_id,
+                "quality_profile_id": self.quality_profile_id,
+            }
+            socketio.emit("settingsTested", response_data)
+        except Exception as e:
+            self.lidify_logger.error(f"Testing connection to Lidarr failed: {str(e)}")
+            response_data = {"success": False}
+            socketio.emit("settingsTested", response_data)
+
     def update_settings(self, data):
         try:
             self.lidarr_address = data["lidarr_address"]
             self.lidarr_api_key = data["lidarr_api_key"]
+            self.lidarr_api_timeout = int(data["lidarr_api_timeout"])
             self.root_folder_path = data["root_folder_path"]
             self.quality_profile_id = data["quality_profile_id"]
             self.metadata_profile_id = data["metadata_profile_id"]
+            self.search_for_missing_albums = data["search_for_missing_albums"]
+            self.auto_start = data["auto_start"]
+            self.auto_start_delay = data["auto_start_delay"]
+            if self.lidarr_api_timeout < 10:
+                self.lidarr_api_timeout = 10
+            elif self.lidarr_api_timeout > 300:
+                self.lidarr_api_timeout = 300
+            if self.auto_start_delay < 10:
+                self.auto_start_delay = 10
+            elif self.auto_start_delay > 120:
+                self.auto_start_delay = 120
         except Exception as e:
             self.lidify_logger.error(f"Failed to update settings: {str(e)}")
 
@@ -336,9 +389,6 @@ class DataHandler:
                         "metadata_profile_id": self.metadata_profile_id,
                         "search_for_missing_albums": self.search_for_missing_albums,
                         "dry_run_adding_to_lidarr": self.dry_run_adding_to_lidarr,
-                        "app_name": self.app_name,
-                        "app_rev": self.app_rev,
-                        "app_url": self.app_url,
                         "auto_start": self.auto_start,
                         "auto_start_delay": self.auto_start_delay,
                     },
@@ -393,6 +443,10 @@ def disconnection():
 @socketio.on("load_settings")
 def load_settings():
     data_handler.load_settings()
+
+@socketio.on("test_settings")
+def test_settings(data):
+    data_handler.test_settings(data)
 
 @socketio.on("update_settings")
 def update_settings(data):
