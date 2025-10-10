@@ -14,4 +14,4 @@ RUN uv sync --locked
 EXPOSE 5000
 
 # Start the app
-CMD ["uv", "run", "src/Listenarr.py"]
+ENTRYPOINT ["uv", "run", "gunicorn", "--workers=1", "--threads=4", "--bind=0.0.0.0:5000", "--worker-class=geventwebsocket.gunicorn.workers.GeventWebSocketWorker", "src.Listenarr:app"]
