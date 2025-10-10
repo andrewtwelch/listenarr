@@ -1,5 +1,4 @@
 import json
-import time
 import logging
 import os
 import random
@@ -120,19 +119,12 @@ class DataHandler:
 
     def automated_startup(self):
         self.get_artists_from_lidarr(checked=True)
-        artists = [x["name"] for x in self.lidarr_items]
+        artists = [x["mbid"] for x in self.lidarr_items]
         self.start(artists)
 
     def connection(self):
         if self.recommended_artists:
-            if self.clients_connected_counter == 0:
-                if len(self.recommended_artists) > 25:
-                    self.recommended_artists = random.sample(self.recommended_artists, 25)
-                else:
-                    self.lidify_logger.info(f"Shuffling Artists")
-                    random.shuffle(self.recommended_artists)
             socketio.emit("more_artists_loaded", self.recommended_artists)
-
         self.clients_connected_counter += 1
 
     def disconnection(self):
