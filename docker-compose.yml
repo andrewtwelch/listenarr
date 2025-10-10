@@ -1,0 +1,10 @@
+services:
+  listenarr:
+    image: ghcr.io/andrewtwelch/listenarr:latest
+    container_name: listenarr
+    volumes:
+      - /srv/listenarr/config:/listenarr/config
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 5000:5000
+    restart: unless-stopped

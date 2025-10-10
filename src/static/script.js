@@ -180,6 +180,17 @@ start_stop_button.addEventListener('click', function () {
     }
 });
 
+socket.on("finished_finding", () => {
+    start_stop_button.classList.add('btn-success');
+    start_stop_button.classList.remove('btn-warning');
+    start_stop_button.textContent = "Start";
+    document.querySelectorAll('input[name="lidarr-item"]').forEach(item => {
+        item.disabled = false;
+    });
+    lidarr_get_artists_button.disabled = false;
+    lidarr_select_all_checkbox.disabled = false;
+});
+
 test_settings_button.addEventListener("click", () => {
     test_settings_button.classList.remove("btn-success");
     test_settings_button.classList.remove("btn-danger");

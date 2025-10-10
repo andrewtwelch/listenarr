@@ -232,6 +232,7 @@ class DataHandler:
 
             finally:
                 self.search_in_progress_flag = False
+                socketio.emit("finished_finding")
 
     def add_artists(self, mbid):
         try:
@@ -460,12 +461,6 @@ def starter(data):
 @socketio.on("stop_req")
 def stopper():
     data_handler.stop_event.set()
-
-@socketio.on("load_more_artists")
-def load_more_artists():
-    thread = threading.Thread(target=data_handler.find_similar_artists, name="FindSimilar")
-    thread.daemon = True
-    thread.start()
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
