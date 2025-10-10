@@ -50,7 +50,7 @@ class DataHandler:
     def load_environ_or_config_settings(self):
         # Defaults
         default_settings = {
-            "lidarr_address": "http://192.168.1.2:8686",
+            "lidarr_address": "http://localhost:8686",
             "lidarr_api_key": "",
             "root_folder_path": "/data/media/music/",
             "fallback_to_top_result": False,
@@ -59,12 +59,9 @@ class DataHandler:
             "metadata_profile_id": 1,
             "search_for_missing_albums": False,
             "dry_run_adding_to_lidarr": False,
-            "app_name": "Lidify",
-            "app_rev": "0.10",
-            "app_url": "http://" + "".join(random.choices(string.ascii_lowercase, k=10)) + ".com",
-            "last_fm_api_key": "",
-            "last_fm_api_secret": "",
-            "mode": "ListenBrainz",
+            "app_name": "Listenarr",
+            "app_rev": "0.1.0",
+            "app_url": "http://localhost:5000",
             "auto_start": False,
             "auto_start_delay": 60,
         }
@@ -88,9 +85,6 @@ class DataHandler:
         self.app_name = os.environ.get("app_name", "")
         self.app_rev = os.environ.get("app_rev", "")
         self.app_url = os.environ.get("app_url", "")
-        self.last_fm_api_key = os.environ.get("last_fm_api_key", "")
-        self.last_fm_api_secret = os.environ.get("last_fm_api_secret", "")
-        self.mode = os.environ.get("mode", "")
         auto_start = os.environ.get("auto_start", "")
         self.auto_start = auto_start.lower() == "true" if auto_start != "" else ""
         auto_start_delay = os.environ.get("auto_start_delay", "")
@@ -353,9 +347,6 @@ class DataHandler:
                         "app_name": self.app_name,
                         "app_rev": self.app_rev,
                         "app_url": self.app_url,
-                        "last_fm_api_key": self.last_fm_api_key,
-                        "last_fm_api_secret": self.last_fm_api_secret,
-                        "mode": self.mode,
                         "auto_start": self.auto_start,
                         "auto_start_delay": self.auto_start_delay,
                     },
