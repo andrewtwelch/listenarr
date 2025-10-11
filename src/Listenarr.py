@@ -262,7 +262,7 @@ class DataHandler:
             if response.status_code == 201:
                 self.lidify_logger.info(f"Artist '{artist_name}' added successfully to Lidarr.")
                 status = "Added"
-                self.lidarr_items.append({"name": artist_name, "checked": False})
+                self.lidarr_items.append({"name": artist_name, "mbid": mbid, "checked": False})
                 self.cleaned_lidarr_items.append(unidecode(artist_name).lower())
             else:
                 self.lidify_logger.error(f"Failed to add artist '{artist_name}' to Lidarr.")
