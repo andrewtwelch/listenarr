@@ -7,7 +7,7 @@ Forked from [Lidify](https://github.com/TheWicklowWolf/Lidify).
 ### Setup
 
 Listenarr can be run natively or through a container.<br />
-To run natively, install dependencies and run `src/Listenarr.py`.<br />
+To run natively, install dependencies and run `src/Listenarr.py`, or run the app through Gunicorn (see Dockerfile for recommended Gunicorn flags).<br />
 To run as a container, use the image `ghcr.io/andrewtwelch/listenarr:latest` or use the `docker-compose.yml` file. The `main` tag is also available, following the `main` branch.
 
 ### Configuration
@@ -25,3 +25,9 @@ Click the sidebar button in the top left to open the sidebar.<br />
 Click the Get Lidarr Artists button to pull artists from your Lidarr instance.<br />
 Select any number of artists, then click Start to have Listenarr give you a list of recommended artists to add.<br />
 Once recommended artists show up, you can click Add to Lidarr to add an artist, or View on ListenBrainz to see more info about the artist.
+
+### Contributing
+
+Happy to take pull requests to the dev branch, however any pull requests believed to be written using AI must be declared as such and may be declined at maintainer discretion.<br />
+Alternate sources for recommendations will only be considered if MusicBrainz IDs for artists can be used and returned (to guarantee correct artist matches).<br />
+No AI features will be added to Listenarr.
