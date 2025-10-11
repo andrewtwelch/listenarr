@@ -32,7 +32,6 @@ class DataHandler:
         self.recommended_artists = []
         self.lidarr_items = []
         self.lidarr_mbids = []
-        self.cleaned_lidarr_items = []
         self.stop_event = threading.Event()
         self.stop_event.set()
         if not os.path.exists(self.config_folder):
@@ -145,6 +144,9 @@ class DataHandler:
         else:
             self.find_similar_artists()
 
+    def sort_artists(e):
+        return e["name"]
+
     def get_artists_from_lidarr(self, checked=False):
         try:
             self.lidify_logger.info(f"Getting Artists from Lidarr")
@@ -159,8 +161,8 @@ class DataHandler:
                 self.lidarr_items = [{"name": unidecode(artist["artistName"], replace_str=" "), "mbid": artist["foreignArtistId"], "checked": checked} for artist in self.full_lidarr_artist_list]
                 self.lidarr_mbids = [artist["foreignArtistId"] for artist in self.full_lidarr_artist_list]
                 self.lidarr_items.sort(key=lambda x: x["name"].lower())
-                self.cleaned_lidarr_items = [item["name"].lower() for item in self.lidarr_items]
                 status = "Success"
+                self.lidarr_items.sort(key=self.sort_artists)
                 data = self.lidarr_items
             else:
                 status = "Error"
@@ -263,7 +265,7 @@ class DataHandler:
                 self.lidify_logger.info(f"Artist '{artist_name}' added successfully to Lidarr.")
                 status = "Added"
                 self.lidarr_items.append({"name": artist_name, "mbid": mbid, "checked": False})
-                self.cleaned_lidarr_items.append(unidecode(artist_name).lower())
+                self.lidarr_items.sort(key=self.sort_artists)
             else:
                 self.lidify_logger.error(f"Failed to add artist '{artist_name}' to Lidarr.")
                 error_data = json.loads(response.content)
