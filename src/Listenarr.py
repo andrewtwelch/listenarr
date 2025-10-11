@@ -83,14 +83,7 @@ class DataHandler:
                     for key in ret:
                         if getattr(self, key) == "":
                             setattr(self, key, ret[key])
-                if self.lidarr_api_timeout < 10:
-                    self.lidarr_api_timeout = 10
-                elif self.lidarr_api_timeout > 300:
-                    self.lidarr_api_timeout = 300
-                if self.auto_start_delay < 10:
-                    self.auto_start_delay = 10
-                elif self.auto_start_delay > 120:
-                    self.auto_start_delay = 120
+
         except Exception as e:
             self.lidify_logger.error(f"Error Loading Config: {str(e)}")
 
@@ -98,6 +91,18 @@ class DataHandler:
         for key, value in default_settings.items():
             if getattr(self, key) == "":
                 setattr(self, key, value)
+
+        # Ensure integer based settings are converted to integers, then enforce min/max
+        self.lidarr_api_timeout = int(self.lidarr_api_timeout)
+        self.auto_start_delay = int(self.auto_start_delay)
+        if self.lidarr_api_timeout < 10:
+            self.lidarr_api_timeout = 10
+        elif self.lidarr_api_timeout > 300:
+            self.lidarr_api_timeout = 300
+        if self.auto_start_delay < 10:
+            self.auto_start_delay = 10
+        elif self.auto_start_delay > 120:
+            self.auto_start_delay = 120
 
         # Save config.
         self.save_config_to_file()
@@ -144,9 +149,6 @@ class DataHandler:
         else:
             self.find_similar_artists()
 
-    def sort_artists(e):
-        return e["name"]
-
     def get_artists_from_lidarr(self, checked=False):
         try:
             self.lidify_logger.info(f"Getting Artists from Lidarr")
@@ -162,7 +164,6 @@ class DataHandler:
                 self.lidarr_mbids = [artist["foreignArtistId"] for artist in self.full_lidarr_artist_list]
                 self.lidarr_items.sort(key=lambda x: x["name"].lower())
                 status = "Success"
-                self.lidarr_items.sort(key=self.sort_artists)
                 data = self.lidarr_items
             else:
                 status = "Error"
@@ -265,7 +266,7 @@ class DataHandler:
                 self.lidify_logger.info(f"Artist '{artist_name}' added successfully to Lidarr.")
                 status = "Added"
                 self.lidarr_items.append({"name": artist_name, "mbid": mbid, "checked": False})
-                self.lidarr_items.sort(key=self.sort_artists)
+                self.lidarr_items.sort(key=lambda x: x["name"].lower())
             else:
                 self.lidify_logger.error(f"Failed to add artist '{artist_name}' to Lidarr.")
                 error_data = json.loads(response.content)
