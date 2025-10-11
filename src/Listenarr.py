@@ -9,7 +9,7 @@ import musicbrainzngs
 from unidecode import unidecode
 
 APP_NAME = "Listenarr"
-APP_VERSION = "0.1.0"
+APP_VERSION = "0.1.1"
 
 class DataHandler:
     def __init__(self):
