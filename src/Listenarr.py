@@ -20,10 +20,8 @@ class DataHandler:
         self.musicbrainzngs_logger = logging.getLogger("musicbrainzngs")
         self.musicbrainzngs_logger.setLevel("WARNING")
 
-        app_name_text = os.path.basename(__file__).replace(".py", "")
-        release_version = os.environ.get("RELEASE_VERSION", "unknown")
         self.lidify_logger.warning(f"{'*' * 50}\n")
-        self.lidify_logger.warning(f"{app_name_text} Version: {release_version}\n")
+        self.lidify_logger.warning(f"{APP_NAME} Version: {APP_VERSION}\n")
         self.lidify_logger.warning(f"{'*' * 50}")
 
         self.search_in_progress_flag = False
