@@ -195,7 +195,7 @@ class DataHandler:
                 if len(similar_artists) == 0:
                     socketio.emit("new_toast_msg", {"title": "No similar artists", "message": f"No similar artists found."})
                     raise Exception("No similar artists returned")
-                filtered_similar_artists = filter(self.filter_similar_artist_response, similar_artists)
+                filtered_similar_artists = filter(lambda x: x["artist_mbid"] not in self.lidarr_mbids, similar_artists)
 
                 for artist in filtered_similar_artists:
                     if self.stop_event.is_set():
@@ -265,6 +265,7 @@ class DataHandler:
                 status = "Added"
                 self.lidarr_items.append({"name": artist_name, "mbid": mbid, "checked": False})
                 self.lidarr_items.sort(key=lambda x: x["name"].lower())
+                self.lidarr_mbids.append(mbid)
             else:
                 self.lidify_logger.error(f"Failed to add artist '{artist_name}' to Lidarr.")
                 error_data = json.loads(response.content)
