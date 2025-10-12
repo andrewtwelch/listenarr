@@ -359,7 +359,7 @@ class DataHandler:
             self.metadata_profile_id = data["metadata_profile_id"]
             self.search_for_missing_albums = data["search_for_missing_albums"]
             self.auto_start = data["auto_start"]
-            self.auto_start_delay = data["auto_start_delay"]
+            self.auto_start_delay = int(data["auto_start_delay"])
             if self.lidarr_api_timeout < 10:
                 self.lidarr_api_timeout = 10
             elif self.lidarr_api_timeout > 300:
