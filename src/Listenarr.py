@@ -6,7 +6,6 @@ from flask import Flask, render_template
 from flask_socketio import SocketIO
 import requests
 import musicbrainzngs
-from unidecode import unidecode
 
 APP_NAME = "Listenarr"
 APP_VERSION = "0.1.1"
@@ -158,7 +157,7 @@ class DataHandler:
 
             if response.status_code == 200:
                 self.full_lidarr_artist_list = response.json()
-                self.lidarr_items = [{"name": unidecode(artist["artistName"], replace_str=" "), "mbid": artist["foreignArtistId"], "checked": checked} for artist in self.full_lidarr_artist_list]
+                self.lidarr_items = [{"name": artist["artistName"], "mbid": artist["foreignArtistId"], "checked": checked} for artist in self.full_lidarr_artist_list]
                 self.lidarr_mbids = [artist["foreignArtistId"] for artist in self.full_lidarr_artist_list]
                 self.lidarr_items.sort(key=lambda x: x["name"].lower())
                 status = "Success"
@@ -232,6 +231,7 @@ class DataHandler:
                 self.lidify_logger.error(f"ListenBrainz similar-artists lookup error: {str(e)}")
 
             finally:
+                self.stop_event.set()
                 self.search_in_progress_flag = False
                 socketio.emit("finished_finding")
 
