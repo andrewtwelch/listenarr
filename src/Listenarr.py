@@ -41,7 +41,7 @@ class DataHandler:
                 auto_start_thread.start()
 
             except Exception as e:
-                self.lidify_logger.error(f"Auto Start Error: {str(e)}")
+                self.lidify_logger.error(f"Auto Start Error: {type(e)} - {str(e)}")
 
     def load_environ_or_config_settings(self):
         # Defaults
@@ -82,7 +82,7 @@ class DataHandler:
                             setattr(self, key, ret[key])
 
         except Exception as e:
-            self.lidify_logger.error(f"Error Loading Config: {str(e)}")
+            self.lidify_logger.error(f"Error Loading Config: {type(e)} - {str(e)}")
 
         # Load defaults if not set by configuration file.
         for key, value in default_settings.items():
@@ -138,7 +138,7 @@ class DataHandler:
                 raise Exception("No Lidarr Artists Selected")
 
         except Exception as e:
-            self.lidify_logger.error(f"Startup Error: {str(e)}")
+            self.lidify_logger.error(f"Startup Error: {type(e)} - {str(e)}")
             self.stop_event.set()
             ret = {"Status": "Error", "Code": str(e), "Data": self.lidarr_items, "Running": not self.stop_event.is_set()}
             socketio.emit("lidarr_sidebar_update", ret)
@@ -169,7 +169,7 @@ class DataHandler:
             ret = {"Status": status, "Code": response.status_code if status == "Error" else None, "Data": data, "Running": not self.stop_event.is_set()}
 
         except Exception as e:
-            self.lidify_logger.error(f"Getting Artist Error: {str(e)}")
+            self.lidify_logger.error(f"Getting Artist Error: {type(e)} - {str(e)}")
             ret = {"Status": "Error", "Code": 500, "Data": str(e), "Running": not self.stop_event.is_set()}
 
         finally:
@@ -225,10 +225,10 @@ class DataHandler:
                         socketio.emit("more_artists_loaded", [returned_artist])
 
                     except Exception as e:
-                        self.lidify_logger.error(f"{stage} error: {str(e)}")
+                        self.lidify_logger.error(f"{stage} error: {type(e)} - {str(e)}")
 
             except Exception as e:
-                self.lidify_logger.error(f"ListenBrainz similar-artists lookup error: {str(e)}")
+                self.lidify_logger.error(f"ListenBrainz similar-artists lookup error: {type(e)} - {str(e)}")
 
             finally:
                 self.stop_event.set()
@@ -290,7 +290,7 @@ class DataHandler:
                     break
 
         except Exception as e:
-            self.lidify_logger.error(f"Adding Artist Error: {str(e)}")
+            self.lidify_logger.error(f"Adding Artist Error: {type(e)} - {str(e)}")
 
     def load_settings(self):
         try:
@@ -320,7 +320,7 @@ class DataHandler:
             }
             socketio.emit("settingsLoaded", data)
         except Exception as e:
-            self.lidify_logger.error(f"Failed to load settings: {str(e)}")
+            self.lidify_logger.error(f"Failed to load settings: {type(e)} - {str(e)}")
 
     def test_settings(self, data):
         try:
@@ -345,7 +345,7 @@ class DataHandler:
             }
             socketio.emit("settingsTested", response_data)
         except Exception as e:
-            self.lidify_logger.error(f"Testing connection to Lidarr failed: {str(e)}")
+            self.lidify_logger.error(f"Testing connection to Lidarr failed: {type(e)} - {str(e)}")
             response_data = {"success": False}
             socketio.emit("settingsTested", response_data)
 
@@ -369,7 +369,7 @@ class DataHandler:
             elif self.auto_start_delay > 120:
                 self.auto_start_delay = 120
         except Exception as e:
-            self.lidify_logger.error(f"Failed to update settings: {str(e)}")
+            self.lidify_logger.error(f"Failed to update settings: {type(e)} - {str(e)}")
 
     def format_numbers(self, count):
         if count >= 1000000:
@@ -400,7 +400,7 @@ class DataHandler:
                 )
 
         except Exception as e:
-            self.lidify_logger.error(f"Error Saving Config: {str(e)}")
+            self.lidify_logger.error(f"Error Saving Config: {type(e)} - {str(e)}")
 
 app = Flask(__name__)
 app.secret_key = "secret_key"
