@@ -74,7 +74,7 @@ class DataHandler:
         try:
             self.settings_config_file = os.path.join(self.config_folder, "settings_config.json")
             if os.path.exists(self.settings_config_file):
-                self.lidify_logger.info(f"Loading Config via file")
+                self.lidify_logger.info("Loading Config via file")
                 with open(self.settings_config_file, "r") as json_file:
                     ret = json.load(json_file)
                     for key in ret:
@@ -148,7 +148,7 @@ class DataHandler:
 
     def get_artists_from_lidarr(self, checked=False):
         try:
-            self.lidify_logger.info(f"Getting Artists from Lidarr")
+            self.lidify_logger.info("Getting Artists from Lidarr")
             self.lidarr_items = []
             self.lidarr_mbids = []
             endpoint = f"{self.lidarr_address}/api/v1/artist"
@@ -188,12 +188,12 @@ class DataHandler:
                 payload = [
                     {
                         "artist_mbids": self.artists_to_use_in_search,
-                        "algorithm": f"session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
+                        "algorithm": "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
                     }
                 ]
                 similar_artists = requests.post("https://labs.api.listenbrainz.org/similar-artists/json", json=payload).json()
                 if len(similar_artists) == 0:
-                    socketio.emit("new_toast_msg", {"title": "No similar artists", "message": f"No similar artists found."})
+                    socketio.emit("new_toast_msg", {"title": "No similar artists", "message": "No similar artists found."})
                     raise Exception("No similar artists returned")
                 filtered_similar_artists = filter(lambda x: x["artist_mbid"] not in self.lidarr_mbids, similar_artists)
 
