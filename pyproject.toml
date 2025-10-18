@@ -18,3 +18,8 @@ dependencies = [
 dev = [
     "ruff>=0.14.1",
 ]
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+line-ending = "lf"
