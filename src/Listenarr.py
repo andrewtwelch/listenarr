@@ -10,6 +10,7 @@ import musicbrainzngs
 APP_NAME = "Listenarr"
 APP_VERSION = "0.1.1"
 
+
 class DataHandler:
     def __init__(self):
         self.app_name = APP_NAME
@@ -36,7 +37,9 @@ class DataHandler:
         self.load_environ_or_config_settings()
         if self.auto_start:
             try:
-                auto_start_thread = threading.Timer(self.auto_start_delay, self.automated_startup)
+                auto_start_thread = threading.Timer(
+                    self.auto_start_delay, self.automated_startup
+                )
                 auto_start_thread.daemon = True
                 auto_start_thread.start()
 
@@ -72,7 +75,9 @@ class DataHandler:
 
         # Load variables from the configuration file if it exists
         try:
-            self.settings_config_file = os.path.join(self.config_folder, "settings_config.json")
+            self.settings_config_file = os.path.join(
+                self.config_folder, "settings_config.json"
+            )
             if os.path.exists(self.settings_config_file):
                 self.lidify_logger.info("Loading Config via file")
                 with open(self.settings_config_file, "r") as json_file:
@@ -140,7 +145,12 @@ class DataHandler:
         except Exception as e:
             self.lidify_logger.error(f"Startup Error: {type(e)} - {str(e)}")
             self.stop_event.set()
-            ret = {"Status": "Error", "Code": str(e), "Data": self.lidarr_items, "Running": not self.stop_event.is_set()}
+            ret = {
+                "Status": "Error",
+                "Code": str(e),
+                "Data": self.lidarr_items,
+                "Running": not self.stop_event.is_set(),
+            }
             socketio.emit("lidarr_sidebar_update", ret)
 
         else:
@@ -153,12 +163,23 @@ class DataHandler:
             self.lidarr_mbids = []
             endpoint = f"{self.lidarr_address}/api/v1/artist"
             headers = {"X-Api-Key": self.lidarr_api_key}
-            response = requests.get(endpoint, headers=headers, timeout=self.lidarr_api_timeout)
+            response = requests.get(
+                endpoint, headers=headers, timeout=self.lidarr_api_timeout
+            )
 
             if response.status_code == 200:
                 self.full_lidarr_artist_list = response.json()
-                self.lidarr_items = [{"name": artist["artistName"], "mbid": artist["foreignArtistId"], "checked": checked} for artist in self.full_lidarr_artist_list]
-                self.lidarr_mbids = [artist["foreignArtistId"] for artist in self.full_lidarr_artist_list]
+                self.lidarr_items = [
+                    {
+                        "name": artist["artistName"],
+                        "mbid": artist["foreignArtistId"],
+                        "checked": checked,
+                    }
+                    for artist in self.full_lidarr_artist_list
+                ]
+                self.lidarr_mbids = [
+                    artist["foreignArtistId"] for artist in self.full_lidarr_artist_list
+                ]
                 self.lidarr_items.sort(key=lambda x: x["name"].lower())
                 status = "Success"
                 data = self.lidarr_items
@@ -166,11 +187,21 @@ class DataHandler:
                 status = "Error"
                 data = response.text
 
-            ret = {"Status": status, "Code": response.status_code if status == "Error" else None, "Data": data, "Running": not self.stop_event.is_set()}
+            ret = {
+                "Status": status,
+                "Code": response.status_code if status == "Error" else None,
+                "Data": data,
+                "Running": not self.stop_event.is_set(),
+            }
 
         except Exception as e:
             self.lidify_logger.error(f"Getting Artist Error: {type(e)} - {str(e)}")
-            ret = {"Status": "Error", "Code": 500, "Data": str(e), "Running": not self.stop_event.is_set()}
+            ret = {
+                "Status": "Error",
+                "Code": 500,
+                "Data": str(e),
+                "Running": not self.stop_event.is_set(),
+            }
 
         finally:
             socketio.emit("lidarr_sidebar_update", ret)
@@ -183,42 +214,62 @@ class DataHandler:
             return
         else:
             try:
-                self.lidify_logger.info("Searching for new artists via ListenBrainz similar-artists")
+                self.lidify_logger.info(
+                    "Searching for new artists via ListenBrainz similar-artists"
+                )
                 self.search_in_progress_flag = True
                 payload = [
                     {
                         "artist_mbids": self.artists_to_use_in_search,
-                        "algorithm": "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
+                        "algorithm": "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30",
                     }
                 ]
-                similar_artists = requests.post("https://labs.api.listenbrainz.org/similar-artists/json", json=payload).json()
+                similar_artists = requests.post(
+                    "https://labs.api.listenbrainz.org/similar-artists/json",
+                    json=payload,
+                ).json()
                 if len(similar_artists) == 0:
-                    socketio.emit("new_toast_msg", {"title": "No similar artists", "message": "No similar artists found."})
+                    socketio.emit(
+                        "new_toast_msg",
+                        {
+                            "title": "No similar artists",
+                            "message": "No similar artists found.",
+                        },
+                    )
                     raise Exception("No similar artists returned")
-                filtered_similar_artists = filter(lambda x: x["artist_mbid"] not in self.lidarr_mbids, similar_artists)
+                filtered_similar_artists = filter(
+                    lambda x: x["artist_mbid"] not in self.lidarr_mbids, similar_artists
+                )
 
                 for artist in filtered_similar_artists:
                     if self.stop_event.is_set():
                         break
                     try:
-                        payload = {
-                            "artist_mbids": [artist["artist_mbid"]]
-                        }
+                        payload = {"artist_mbids": [artist["artist_mbid"]]}
                         returned_artist = {
                             "Name": artist["name"],
                             "Mbid": artist["artist_mbid"],
                             "Status": "",
-                            "Similar_To": ""
+                            "Similar_To": "",
                         }
                         for lidarr_artist in self.lidarr_items:
                             if lidarr_artist["mbid"] == artist["reference_mbid"]:
-                                returned_artist["Similar_To"] = f"Similar to {lidarr_artist["name"]}"
+                                returned_artist["Similar_To"] = (
+                                    f"Similar to {lidarr_artist['name']}"
+                                )
                                 break
 
                         stage = "ListenBrainz artist popularity lookup"
-                        popularity_data = requests.post("https://api.listenbrainz.org/1/popularity/artist", json=payload).json()
-                        returned_artist["Popularity"] = f"{self.format_numbers(popularity_data[0]["total_listen_count"])} listens"
-                        returned_artist["Followers"] = f"{self.format_numbers(popularity_data[0]["total_user_count"])} users"
+                        popularity_data = requests.post(
+                            "https://api.listenbrainz.org/1/popularity/artist",
+                            json=payload,
+                        ).json()
+                        returned_artist["Popularity"] = (
+                            f"{self.format_numbers(popularity_data[0]['total_listen_count'])} listens"
+                        )
+                        returned_artist["Followers"] = (
+                            f"{self.format_numbers(popularity_data[0]['total_user_count'])} users"
+                        )
 
                         stage = "Send to client"
                         self.recommended_artists.append(returned_artist)
@@ -228,7 +279,9 @@ class DataHandler:
                         self.lidify_logger.error(f"{stage} error: {type(e)} - {str(e)}")
 
             except Exception as e:
-                self.lidify_logger.error(f"ListenBrainz similar-artists lookup error: {type(e)} - {str(e)}")
+                self.lidify_logger.error(
+                    f"ListenBrainz similar-artists lookup error: {type(e)} - {str(e)}"
+                )
 
             finally:
                 self.stop_event.set()
@@ -237,7 +290,9 @@ class DataHandler:
 
     def add_artists(self, mbid):
         try:
-            musicbrainzngs.set_useragent(self.app_name, self.app_rev, "https://github.com/andrewtwelch/listenarr")
+            musicbrainzngs.set_useragent(
+                self.app_name, self.app_rev, "https://github.com/andrewtwelch/listenarr"
+            )
             artist_lookup = musicbrainzngs.get_artist_by_id(mbid)
             artist_details = artist_lookup["artist"]
             artist_name = artist_details["name"]
@@ -252,34 +307,57 @@ class DataHandler:
                 "rootFolderPath": self.root_folder_path,
                 "foreignArtistId": mbid,
                 "monitored": True,
-                "addOptions": {"searchForMissingAlbums": self.search_for_missing_albums},
+                "addOptions": {
+                    "searchForMissingAlbums": self.search_for_missing_albums
+                },
             }
             if self.dry_run_adding_to_lidarr:
                 response = requests.Response()
                 response.status_code = 201
             else:
-                response = requests.post(lidarr_url, headers=headers, json=payload, timeout=self.lidarr_api_timeout)
+                response = requests.post(
+                    lidarr_url,
+                    headers=headers,
+                    json=payload,
+                    timeout=self.lidarr_api_timeout,
+                )
 
             if response.status_code == 201:
-                self.lidify_logger.info(f"Artist '{artist_name}' added successfully to Lidarr.")
+                self.lidify_logger.info(
+                    f"Artist '{artist_name}' added successfully to Lidarr."
+                )
                 status = "Added"
-                self.lidarr_items.append({"name": artist_name, "mbid": mbid, "checked": False})
+                self.lidarr_items.append(
+                    {"name": artist_name, "mbid": mbid, "checked": False}
+                )
                 self.lidarr_items.sort(key=lambda x: x["name"].lower())
                 self.lidarr_mbids.append(mbid)
             else:
-                self.lidify_logger.error(f"Failed to add artist '{artist_name}' to Lidarr.")
+                self.lidify_logger.error(
+                    f"Failed to add artist '{artist_name}' to Lidarr."
+                )
                 error_data = json.loads(response.content)
-                error_message = error_data[0].get("errorMessage", "No Error Message Returned") if error_data else "Error Unknown"
+                error_message = (
+                    error_data[0].get("errorMessage", "No Error Message Returned")
+                    if error_data
+                    else "Error Unknown"
+                )
                 self.lidify_logger.error(error_message)
                 if "already been added" in error_message:
                     status = "Already in Lidarr"
-                    self.lidify_logger.info(f"Artist '{artist_name}' is already in Lidarr.")
+                    self.lidify_logger.info(
+                        f"Artist '{artist_name}' is already in Lidarr."
+                    )
                 elif "configured for an existing artist" in error_message:
                     status = "Already in Lidarr"
-                    self.lidify_logger.info(f"'{artist_folder}' folder already configured for an existing artist.")
+                    self.lidify_logger.info(
+                        f"'{artist_folder}' folder already configured for an existing artist."
+                    )
                 elif "Invalid Path" in error_message:
                     status = "Invalid Path"
-                    self.lidify_logger.info(f"Path: {os.path.join(self.root_folder_path, artist_folder, '')} not valid.")
+                    self.lidify_logger.info(
+                        f"Path: {os.path.join(self.root_folder_path, artist_folder, '')} not valid."
+                    )
                 else:
                     status = "Failed to Add"
 
@@ -299,11 +377,27 @@ class DataHandler:
             quality_profiles = []
             root_folders = []
             if self.lidarr_address:
-                status_request = requests.get(f"{self.lidarr_address}/api/v1/system/status", headers=headers, timeout=10)
+                status_request = requests.get(
+                    f"{self.lidarr_address}/api/v1/system/status",
+                    headers=headers,
+                    timeout=10,
+                )
                 if status_request.status_code == 200:
-                    metadata_profiles = requests.get(f"{self.lidarr_address}/api/v1/metadataprofile", headers=headers, timeout=10).json()
-                    quality_profiles = requests.get(f"{self.lidarr_address}/api/v1/qualityprofile", headers=headers, timeout=10).json()
-                    root_folders = requests.get(f"{self.lidarr_address}/api/v1/rootfolder", headers=headers, timeout=10).json()
+                    metadata_profiles = requests.get(
+                        f"{self.lidarr_address}/api/v1/metadataprofile",
+                        headers=headers,
+                        timeout=10,
+                    ).json()
+                    quality_profiles = requests.get(
+                        f"{self.lidarr_address}/api/v1/qualityprofile",
+                        headers=headers,
+                        timeout=10,
+                    ).json()
+                    root_folders = requests.get(
+                        f"{self.lidarr_address}/api/v1/rootfolder",
+                        headers=headers,
+                        timeout=10,
+                    ).json()
             data = {
                 "lidarr_address": self.lidarr_address,
                 "lidarr_api_key": self.lidarr_api_key,
@@ -327,13 +421,21 @@ class DataHandler:
             address = data["lidarr_address"]
             key = data["lidarr_api_key"]
             headers = {"X-Api-Key": key}
-            status_request = requests.get(f"{address}/api/v1/system/status", headers=headers, timeout=10)
+            status_request = requests.get(
+                f"{address}/api/v1/system/status", headers=headers, timeout=10
+            )
             if status_request.status_code != 200:
                 response_data = {"success": False}
                 socketio.emit("settingsTested", data)
-            metadata_profiles = requests.get(f"{address}/api/v1/metadataprofile", headers=headers, timeout=10).json()
-            quality_profiles = requests.get(f"{address}/api/v1/qualityprofile", headers=headers, timeout=10).json()
-            root_folders = requests.get(f"{address}/api/v1/rootfolder", headers=headers, timeout=10).json()
+            metadata_profiles = requests.get(
+                f"{address}/api/v1/metadataprofile", headers=headers, timeout=10
+            ).json()
+            quality_profiles = requests.get(
+                f"{address}/api/v1/qualityprofile", headers=headers, timeout=10
+            ).json()
+            root_folders = requests.get(
+                f"{address}/api/v1/rootfolder", headers=headers, timeout=10
+            ).json()
             response_data = {
                 "success": True,
                 "root_folders": root_folders,
@@ -345,7 +447,9 @@ class DataHandler:
             }
             socketio.emit("settingsTested", response_data)
         except Exception as e:
-            self.lidify_logger.error(f"Testing connection to Lidarr failed: {type(e)} - {str(e)}")
+            self.lidify_logger.error(
+                f"Testing connection to Lidarr failed: {type(e)} - {str(e)}"
+            )
             response_data = {"success": False}
             socketio.emit("settingsTested", response_data)
 
@@ -402,67 +506,93 @@ class DataHandler:
         except Exception as e:
             self.lidify_logger.error(f"Error Saving Config: {type(e)} - {str(e)}")
 
+
 app = Flask(__name__)
 app.secret_key = "secret_key"
 socketio = SocketIO(app)
 data_handler = DataHandler()
 
+
 @app.route("/")
 def home():
     return render_template("base.html")
 
+
 @socketio.on("side_bar_opened")
 def side_bar_opened():
     if data_handler.lidarr_items:
-        ret = {"Status": "Success", "Data": data_handler.lidarr_items, "Running": not data_handler.stop_event.is_set()}
+        ret = {
+            "Status": "Success",
+            "Data": data_handler.lidarr_items,
+            "Running": not data_handler.stop_event.is_set(),
+        }
         socketio.emit("lidarr_sidebar_update", ret)
+
 
 @socketio.on("get_lidarr_artists")
 def get_lidarr_artists():
-    thread = threading.Thread(target=data_handler.get_artists_from_lidarr, name="Lidarr_Thread")
+    thread = threading.Thread(
+        target=data_handler.get_artists_from_lidarr, name="Lidarr_Thread"
+    )
     thread.daemon = True
     thread.start()
+
 
 @socketio.on("finder")
 def find_similar_artists(data):
-    thread = threading.Thread(target=data_handler.find_similar_artists, args=(data,), name="Find_Similar_Thread")
+    thread = threading.Thread(
+        target=data_handler.find_similar_artists,
+        args=(data,),
+        name="Find_Similar_Thread",
+    )
     thread.daemon = True
     thread.start()
 
+
 @socketio.on("adder")
 def add_artists(data):
-    thread = threading.Thread(target=data_handler.add_artists, args=(data,), name="Add_Artists_Thread")
+    thread = threading.Thread(
+        target=data_handler.add_artists, args=(data,), name="Add_Artists_Thread"
+    )
     thread.daemon = True
     thread.start()
+
 
 @socketio.on("connect")
 def connection():
     data_handler.connection()
 
+
 @socketio.on("disconnect")
 def disconnection():
     data_handler.disconnection()
+
 
 @socketio.on("load_settings")
 def load_settings():
     data_handler.load_settings()
 
+
 @socketio.on("test_settings")
 def test_settings(data):
     data_handler.test_settings(data)
+
 
 @socketio.on("update_settings")
 def update_settings(data):
     data_handler.update_settings(data)
     data_handler.save_config_to_file()
 
+
 @socketio.on("start_req")
 def starter(data):
     data_handler.start(data)
 
+
 @socketio.on("stop_req")
 def stopper():
     data_handler.stop_event.set()
+
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
