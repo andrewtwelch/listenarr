@@ -259,9 +259,7 @@ dependencies = [
     { name = "gevent-websocket" },
     { name = "gunicorn" },
     { name = "musicbrainzngs" },
-    { name = "pylistenbrainz" },
     { name = "requests" },
-    { name = "spotipy" },
 ]
 
 [package.metadata]
@@ -272,10 +270,11 @@ requires-dist = [
     { name = "gevent-websocket", specifier = ">=0.10.1" },
     { name = "gunicorn", specifier = ">=23.0.0" },
     { name = "musicbrainzngs", specifier = ">=0.7.1" },
-    { name = "pylistenbrainz", specifier = ">=0.5.1" },
     { name = "requests", specifier = ">=2.32.5" },
-    { name = "spotipy", specifier = ">=2.25.1" },
 ]
+
+[package.metadata.requires-dev]
+dev = []
 
 [[package]]
 name = "markupsafe"
@@ -357,18 +356,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pylistenbrainz"
-version = "0.5.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "requests" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/e3/11/24ca2dcec2be635728521610274088888fbf721e5cc0e2302d658fe8ebf2/pylistenbrainz-0.5.1.tar.gz", hash = "sha256:20f4649bad2e5d5e949ad0bf9238c4e632a8df0a0b2b2220bd055506fb95ab48", size = 11292, upload-time = "2021-12-11T18:45:29.904Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/17/07/1af138c78dafcea3d1e5262b148cdf589593ff00cdf6db34effc69a89012/pylistenbrainz-0.5.1-py3-none-any.whl", hash = "sha256:5d56c281898f0ff3a75ade720a09fbfe56832e277fd0c2b5cc0949848c46dfc2", size = 28890, upload-time = "2021-12-11T18:45:24.547Z" },
-]
-
-[[package]]
 name = "python-engineio"
 version = "4.12.3"
 source = { registry = "https://pypi.org/simple" }
@@ -391,15 +378,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/05/c2/a9ae3d0eb4488748a2d9c15defddb7277a852234e29e50c73136834dff1b/python_socketio-5.14.1.tar.gz", hash = "sha256:bf49657073b90ee09e4cbd6651044b46bb526694276621e807a1b8fcc0c1b25b", size = 123068, upload-time = "2025-10-02T18:44:54.467Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d5/5e/302c3499a134a52b68e4e6fb345cea52ab1c41460949bcdb09f8bd0e3594/python_socketio-5.14.1-py3-none-any.whl", hash = "sha256:3419f5917f0e3942317836a77146cb4caa23ad804c8fd1a7e3f44a6657a8406e", size = 78496, upload-time = "2025-10-02T18:44:52.649Z" },
-]
-
-[[package]]
-name = "redis"
-version = "6.4.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/0d/d6/e8b92798a5bd67d659d51a18170e91c16ac3b59738d91894651ee255ed49/redis-6.4.0.tar.gz", hash = "sha256:b01bc7282b8444e28ec36b261df5375183bb47a07eb9c603f284e89cbc5ef010", size = 4647399, upload-time = "2025-08-07T08:10:11.441Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e8/02/89e2ed7e85db6c93dfa9e8f691c5087df4e3551ab39081a4d7c6d1f90e05/redis-6.4.0-py3-none-any.whl", hash = "sha256:f0544fa9604264e9464cdf4814e7d4830f74b165d52f2a330a760a88dd248b7f", size = 279847, upload-time = "2025-08-07T08:10:09.84Z" },
 ]
 
 [[package]]
@@ -436,20 +414,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b0/d4/bfa032f961103eba93de583b161f0e6a5b63cebb8f2c7d0c6e6efe1e3d2e/simple_websocket-1.1.0.tar.gz", hash = "sha256:7939234e7aa067c534abdab3a9ed933ec9ce4691b0713c78acb195560aa52ae4", size = 17300, upload-time = "2024-10-10T22:39:31.412Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/52/59/0782e51887ac6b07ffd1570e0364cf901ebc36345fea669969d2084baebb/simple_websocket-1.1.0-py3-none-any.whl", hash = "sha256:4af6069630a38ed6c561010f0e11a5bc0d4ca569b36306eb257cd9a192497c8c", size = 13842, upload-time = "2024-10-10T22:39:29.645Z" },
-]
-
-[[package]]
-name = "spotipy"
-version = "2.25.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "redis" },
-    { name = "requests" },
-    { name = "urllib3" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/18/22/d900e55cfdd489ecdacf560aea4618848893fcbab4433bf62d0d731fa030/spotipy-2.25.1.tar.gz", hash = "sha256:607d3c43722b7e217a7e6c82f17258b798b92a512017d60c06323d62ae814cd7", size = 44432, upload-time = "2025-02-27T07:32:14.104Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/bd/3b/dde90e39c456f0d72397afd49d433f95c6a2fdbdcd829bcfc38cdbf6949a/spotipy-2.25.1-py3-none-any.whl", hash = "sha256:18f47d9a0594ced8001b3baa5a4160ea6dcf570abbdad371971f475a81892844", size = 31331, upload-time = "2025-02-27T07:32:13.086Z" },
 ]
 
 [[package]]
